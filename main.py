@@ -1,12 +1,11 @@
 from dotenv import load_dotenv
-from datetime import datetime
-import json, requests
+import datetime, json, requests
 from git import Repo
 import os
 
 def fetch_wordle(today: str):
     url = f"https://www.nytimes.com/svc/wordle/v2/{today}.json"
-    wordle = json.loads(open("wordles.json", "r").read())
+    wordle = json.loads(open("wordle.json", "r").read())
     
     try:
         response = requests.get(url).json()
@@ -15,13 +14,13 @@ def fetch_wordle(today: str):
     except Exception as e:
         print(f"Error fetching {today}: {e}")
 
-    with open("wordles.json", "w") as f:
+    with open("wordle.json", "w") as f:
         json.dump(wordle, f, indent=4)
 
 def git_push(msg: str):
+    repo = Repo(os.getenv("REPO"))
     if repo.is_dirty(untracked_files=True) or repo.index.diff(None):
         try:
-            repo = Repo(os.getenv("REPO"))
             origin = repo.remote(name='origin')
             
             repo.git.add(all=True)
@@ -35,4 +34,4 @@ if __name__ == "__main__":
     load_dotenv()
     today = datetime.date.today().strftime("%Y-%m-%d")
     fetch_wordle(today)
-    git_push()
+    git_push(today)
